@@ -12,10 +12,10 @@ djangorestframework-simplejwt==5.3.1
 python-dotenv==1.0.1
 
 # Image & File Uploads
-Pillow==10.3.0
+Pillow>=10.3.0
 
 # Database (SQLite by default, but ready for PostgreSQL)
-psycopg2-binary==2.9.9
+psycopg2-binary>=2.9.9
 
 # Media and Static Files Management (optional but helpful)
 whitenoise==6.6.0
