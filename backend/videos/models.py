@@ -27,12 +27,6 @@ class Video(models.Model):
         null=True,
     )
 
-    favorites = models.ManyToManyField(
-        'Video',
-        related_name='favorited_by',
-        blank=True
-    )
-
     def average_rating(self):
         ratings = self.ratings.all()
         if ratings.exists():

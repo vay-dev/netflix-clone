@@ -14,6 +14,12 @@ class User(AbstractUser):
         ('user', 'User')
     )
 
+    favorites = models.ManyToManyField(
+        'videos.Video',
+        related_name='favorited_by',
+        blank=True
+    )
+
     roles = models.CharField(
         max_length=10, choices=ROLE_CHOICES, default='User')
 

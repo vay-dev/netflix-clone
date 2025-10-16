@@ -50,6 +50,27 @@ class VideoViewset(viewsets.ModelViewSet):
         )
         return Response({'message': 'Rating saved', 'rating': rating_value})
 
+      # custom action for adding and removing favourites
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def toggle_favorite(self, request, pk=None):
+        video = self.get_object()
+        user = request.user
+
+        if video in user.favorites.all():
+            user.favorites.remove(video)
+            return Response({'message': 'Removed from favorites'})
+        else:
+            user.favorites.add(video)
+            return Response({'message': 'Added to favorites'})
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def my_favorites(self, request):
+        user = request.user
+        videos = user.favorites.all()
+        serializer = self.get_serializer(videos, many=True)
+        return Response(serializer.data)
+
 
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
