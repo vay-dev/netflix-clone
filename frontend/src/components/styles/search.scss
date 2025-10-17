@@ -42,6 +42,7 @@
       outline: none;
       color: white;
       font-size: 1rem;
+      placeholder-color: var(--gray-color);
 
       &::placeholder {
         color: var(--gray-color);
@@ -184,9 +185,6 @@
 
       .input {
         font-size: 0.9rem;
-        &::placeholder {
-          color: #fff !important;
-        }
       }
     }
 

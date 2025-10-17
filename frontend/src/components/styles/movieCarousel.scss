@@ -14,7 +14,7 @@
     background-repeat: no-repeat;
     filter: blur(20px) brightness(0.3);
     z-index: -1;
-    transform: scale(1.1);
+    transform: scale(1.1); // Prevent edge artifacts
   }
 
   .carousel-content {
@@ -63,31 +63,74 @@
       height: 20px;
     }
 
-    &:hover {
+    &:hover:not(.disabled) {
       background: var(--accent-color);
       transform: scale(1.1);
     }
+
+    &.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .carousel-container {
+    overflow-x: hidden;
+    overflow-y: visible;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
+  }
+
+  .carousel-track {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    transition: transform 0.3s ease;
   }
 
   .carousel-item {
-    padding: 0 0.5rem;
-  }
+    flex: 0 0 auto;
 
-  // Slick carousel overrides
-  .slick-slider {
-    margin: 0 -0.5rem;
-  }
-
-  .slick-dots {
-    bottom: -2rem;
-
-    li button:before {
-      color: rgba(255, 255, 255, 0.3);
-      font-size: 8px;
+    // Default size (normal cards)
+    .movie-carousel:not(.carousel--large) & {
+      width: 200px;
     }
 
-    li.slick-active button:before {
-      color: var(--accent-color);
+    // Large size
+    .carousel--large & {
+      width: 300px;
+    }
+  }
+
+  .carousel-indicators {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    margin-top: 1rem;
+
+    .indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transition: var(--total-transition);
+
+      &.active {
+        background: var(--accent-color);
+        transform: scale(1.2);
+      }
+    }
+  }
+
+  // Large carousel variant
+  &--large {
+    .carousel-item {
+      width: 300px;
     }
   }
 }

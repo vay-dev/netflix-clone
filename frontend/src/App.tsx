@@ -292,31 +292,29 @@ const App = () => {
   return (
     <div className="app">
       {/* APP HEADER - Welcome message and branding */}
-      <div className="header-search-combine">
-        <header className="header">
-          <h1 className="header__greeting text-capitalize">
-            Welcome To <br />{" "}
-            <span className="title text-capitalize">FilmFlare</span>
-          </h1>
-          <h1 className="header__description text-capitalize">
-            Find <span className="title">movies</span> you'll enjoy
-          </h1>
-          <h1 className="header__secondary__description text-capitalize">
-            without the hassle
-          </h1>
-        </header>
+      <header className="header">
+        <h1 className="header__greeting text-capitalize">
+          Welcome To <br />{" "}
+          <span className="title text-capitalize">FilmFlare</span>
+        </h1>
+        <h1 className="header__description text-capitalize">
+          Find <span className="title">movies</span> you'll enjoy
+        </h1>
+        <h1 className="header__secondary__description text-capitalize">
+          without the hassle
+        </h1>
+      </header>
 
-        {/* SEARCH COMPONENT - Search bar, tabs (All/Trending/Genres), and genre buttons */}
-        <Search
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          fetchMoviesByGenre={fetchMoviesByGenre}
-          setSelectedGenre={setSelectedGenre}
-          selectedGenre={selectedGenre}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
-      </div>
+      {/* SEARCH COMPONENT - Search bar, tabs (All/Trending/Genres), and genre buttons */}
+      <Search
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        fetchMoviesByGenre={fetchMoviesByGenre}
+        setSelectedGenre={setSelectedGenre}
+        selectedGenre={selectedGenre}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
 
       {/* MAIN CONTENT AREA - Renders different content based on active tab and state */}
       <div className="page-content">{renderContent()}</div>
