@@ -1,7 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
+import Slider from "react-slick";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import MovieCard from "./movieCard";
 import type { MovieInterface } from "../interfaces/movie.interface";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import "./styles/movieCarousel.scss";
 
 interface MovieCarouselProps {
@@ -12,6 +15,25 @@ interface MovieCarouselProps {
   backgroundMovie?: MovieInterface | null;
 }
 
+// Custom arrow components
+const NextArrow = (props: any) => {
+  const { onClick } = props;
+  return (
+    <button className="carousel-btn carousel-btn--right" onClick={onClick}>
+      <ChevronRight className="icon" />
+    </button>
+  );
+};
+
+const PrevArrow = (props: any) => {
+  const { onClick } = props;
+  return (
+    <button className="carousel-btn carousel-btn--left" onClick={onClick}>
+      <ChevronLeft className="icon" />
+    </button>
+  );
+};
+
 export const MovieCarousel: React.FC<MovieCarouselProps> = ({
   title,
   movies,
@@ -19,60 +41,45 @@ export const MovieCarousel: React.FC<MovieCarouselProps> = ({
   isLarge = false,
   backgroundMovie,
 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const itemsPerView = isLarge ? 4 : 6;
-  const itemWidth = isLarge ? 320 : 220; // includes gap
-
-  useEffect(() => {
-    updateScrollButtons();
-  }, [movies, currentIndex]);
-
-  const updateScrollButtons = () => {
-    if (!scrollContainerRef.current) return;
-
-    const container = scrollContainerRef.current;
-    const maxScrollLeft = container.scrollWidth - container.clientWidth;
-
-    setCanScrollLeft(container.scrollLeft > 0);
-    setCanScrollRight(container.scrollLeft < maxScrollLeft - 1);
-  };
-
-  const scrollLeft = () => {
-    if (!scrollContainerRef.current || currentIndex === 0) return;
-
-    const newIndex = Math.max(0, currentIndex - itemsPerView);
-    setCurrentIndex(newIndex);
-
-    scrollContainerRef.current.scrollTo({
-      left: newIndex * itemWidth,
-      behavior: "smooth",
-    });
-  };
-
-  const scrollRight = () => {
-    if (!scrollContainerRef.current) return;
-
-    const maxIndex = Math.max(0, movies.length - itemsPerView);
-    const newIndex = Math.min(maxIndex, currentIndex + itemsPerView);
-    setCurrentIndex(newIndex);
-
-    scrollContainerRef.current.scrollTo({
-      left: newIndex * itemWidth,
-      behavior: "smooth",
-    });
-  };
-
-  const handleScroll = () => {
-    updateScrollButtons();
-  };
-
   if (!movies || movies.length === 0) {
     return null;
   }
+
+  const settings = {
+    dots: true,
+    infinite: movies.length > 4,
+    speed: 500,
+    slidesToShow: 4,
+    slidesToScroll: 4,
+    nextArrow: <NextArrow />,
+    prevArrow: <PrevArrow />,
+    responsive: [
+      {
+        breakpoint: 1200,
+        settings: {
+          slidesToShow: 3,
+          slidesToScroll: 3,
+          infinite: movies.length > 3,
+        },
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 2,
+          infinite: movies.length > 2,
+        },
+      },
+      {
+        breakpoint: 480,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          infinite: movies.length > 1,
+        },
+      },
+    ],
+  };
 
   return (
     <div className="movie-carousel">
@@ -90,59 +97,19 @@ export const MovieCarousel: React.FC<MovieCarouselProps> = ({
       <div className="carousel-content">
         <div className="carousel-header">
           <h2 className="carousel-title">{title}</h2>
-          <div className="carousel-controls">
-            <button
-              className={`carousel-btn carousel-btn--left ${
-                !canScrollLeft ? "disabled" : ""
-              }`}
-              onClick={scrollLeft}
-              disabled={!canScrollLeft}
-            >
-              <ChevronLeft className="icon" />
-            </button>
-            <button
-              className={`carousel-btn carousel-btn--right ${
-                !canScrollRight ? "disabled" : ""
-              }`}
-              onClick={scrollRight}
-              disabled={!canScrollRight}
-            >
-              <ChevronRight className="icon" />
-            </button>
-          </div>
         </div>
 
-        <div
-          className="carousel-container"
-          ref={scrollContainerRef}
-          onScroll={handleScroll}
-        >
-          <div className="carousel-track">
-            {movies.map((movie) => (
-              <div key={movie.id} className="carousel-item">
-                <MovieCard
-                  movie={movie}
-                  showDetails={showDetails}
-                  isLarge={isLarge}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="carousel-indicators">
-          {Array.from(
-            { length: Math.ceil(movies.length / itemsPerView) },
-            (_, i) => (
-              <div
-                key={i}
-                className={`indicator ${
-                  Math.floor(currentIndex / itemsPerView) === i ? "active" : ""
-                }`}
+        <Slider {...settings}>
+          {movies.map((movie) => (
+            <div key={movie.id} className="carousel-item">
+              <MovieCard
+                movie={movie}
+                showDetails={showDetails}
+                isLarge={isLarge}
               />
-            )
-          )}
-        </div>
+            </div>
+          ))}
+        </Slider>
       </div>
     </div>
   );
