@@ -34,7 +34,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'username': self.user.username,
             'email': self.user.email,
             'roles': self.user.roles,
-            'profile_image': request.build_absolute_uri(self.user.profile_image.url) if self.user.profile_image else None
+            'profile_image': request.build_absolute_uri(self.user.profile_image.url) if self.user.profile_image else None,
+            'first_name': self.user.first_name,
+            'last_name': self.user.last_name,
         }
         return data
 
