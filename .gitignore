@@ -4,10 +4,12 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.sqlite3
 *.log
 
+db.sqlite3
 .claude/
-
+backend/db.sqlite3
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
 # Compiled output
