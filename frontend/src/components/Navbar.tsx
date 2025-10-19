@@ -1,10 +1,14 @@
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { User, LogOut, Upload, Heart, Home } from 'lucide-react';
-import './styles/navbar.scss';
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { User, LogOut, Upload, Heart, Home, LayoutDashboard, ChevronDown } from "lucide-react";
+import { useState } from "react";
+import Button from "./shared/Button";
+import "./styles/navbar.scss";
 
 const Navbar = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   return (
     <nav className="navbar">
@@ -20,10 +24,16 @@ const Navbar = () => {
           </Link>
 
           {isAuthenticated && (
-            <Link to="/favorites" className="navbar__link">
-              <Heart size={18} />
-              <span>Favorites</span>
-            </Link>
+            <>
+              <Link to="/dashboard" className="navbar__link">
+                <LayoutDashboard size={18} />
+                <span>Dashboard</span>
+              </Link>
+              <Link to="/favorites" className="navbar__link">
+                <Heart size={18} />
+                <span>Favorites</span>
+              </Link>
+            </>
           )}
 
           {isAdmin && (
@@ -36,37 +46,90 @@ const Navbar = () => {
 
         <div className="navbar__user">
           {isAuthenticated ? (
-            <>
-              <div className="navbar__profile">
-                {user?.profile_image ? (
-                  <img
-                    src={user.profile_image}
-                    alt={user.username}
-                    className="navbar__avatar"
-                  />
-                ) : (
-                  <div className="navbar__avatar navbar__avatar--default">
-                    <User size={20} />
+            <div className="navbar__user-section">
+              <div
+                className="navbar__profile-dropdown"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+              >
+                <div className="navbar__profile">
+                  {user?.profile_image ? (
+                    <img
+                      src={user.profile_image}
+                      alt={user.username}
+                      className="navbar__avatar"
+                    />
+                  ) : (
+                    <div className="navbar__avatar navbar__avatar--default">
+                      <User size={20} />
+                    </div>
+                  )}
+                  <div className="navbar__user-info">
+                    <span className="navbar__username">{user?.username}</span>
+                    {isAdmin && <span className="navbar__badge">Admin</span>}
                   </div>
-                )}
-                <div className="navbar__user-info">
-                  <span className="navbar__username">{user?.username}</span>
-                  {isAdmin && <span className="navbar__badge">Admin</span>}
+                  <ChevronDown
+                    size={18}
+                    className={`navbar__dropdown-icon ${showUserMenu ? 'open' : ''}`}
+                  />
                 </div>
               </div>
-              <button onClick={logout} className="navbar__logout">
-                <LogOut size={18} />
-                <span>Logout</span>
-              </button>
-            </>
+
+              {showUserMenu && (
+                <div className="navbar__dropdown-menu">
+                  <Link
+                    to="/dashboard"
+                    className="navbar__dropdown-item"
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    <LayoutDashboard size={18} />
+                    <span>Dashboard</span>
+                  </Link>
+                  <Link
+                    to="/favorites"
+                    className="navbar__dropdown-item"
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    <Heart size={18} />
+                    <span>My Favorites</span>
+                  </Link>
+                  {isAdmin && (
+                    <Link
+                      to="/upload"
+                      className="navbar__dropdown-item"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <Upload size={18} />
+                      <span>Upload Video</span>
+                    </Link>
+                  )}
+                  <div className="navbar__dropdown-divider"></div>
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      logout();
+                    }}
+                    className="navbar__dropdown-item navbar__dropdown-item--danger"
+                  >
+                    <LogOut size={18} />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <div className="navbar__auth-links">
-              <Link to="/login" className="navbar__link">
-                Login
-              </Link>
-              <Link to="/register" className="navbar__link navbar__link--primary">
-                Sign Up
-              </Link>
+              <Button
+                text="L O G I N"
+                onClick={() => navigate("/login")}
+                variant="secondary"
+                showArrows={true}
+              />
+              <Button
+                text="S I G N U P"
+                onClick={() => navigate("/register")}
+                variant="primary"
+                showArrows={false}
+              />
             </div>
           )}
         </div>

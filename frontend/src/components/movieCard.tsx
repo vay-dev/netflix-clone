@@ -56,9 +56,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       <div className="movie-card__image-container">
         <img
           src={
-            movie.poster_path
-              ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}`
-              : "/default-poster.png"
+            movie.poster_path ? `${movie.poster_path}` : "/default-poster.png"
           }
           alt={movie.title}
           className="movie-card__image"
