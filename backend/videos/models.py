@@ -24,7 +24,6 @@ class Video(models.Model):
         settings.AUTH_USER_MODEL,
         related_name='liked_videos',
         blank=True,
-        null=True,
     )
 
     def average_rating(self):

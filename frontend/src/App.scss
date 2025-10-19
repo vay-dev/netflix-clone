@@ -98,9 +98,29 @@
   }
 }
 
-// Add these styles to your existing App.scss
-
+// Main app styles
 .app {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+  color: white;
+}
+
+.app-main {
+  width: 100%;
+}
+
+.downloads-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 100px 2rem 2rem;
+
+  @media (max-width: 768px) {
+    padding: 90px 1rem 1rem;
+  }
+}
+
+// Legacy app styles preserved
+.app-old {
   min-height: 100vh;
   background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
   color: white;

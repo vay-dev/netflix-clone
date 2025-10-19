@@ -1,327 +1,283 @@
 import "./App.scss";
 import { useState, useEffect } from "react";
-import type {
-  MovieInterface,
-  MovieApiResponseInterface,
-} from "./interfaces/movie.interface";
-// ===== COMPONENT IMPORTS ===== //
-import Search from "./components/search"; // Search component with tabs and genre buttons
-import MovieCarousel from "./components/movieCarousel.tsx"; // Horizontal scrolling movie carousel
-import MovieGrid from "./components/movieGrid"; // Responsive grid layout for movies
-import type { BtnValueInterface } from "./interfaces/btnValue.interface";
-import { updateSearchTerm, getTrendingMovies } from "./appwrite.ts";
-import ErrorMessage from "./components/errorMesage.tsx"; // Error handling component
+import { Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { videoService } from './services/videoService';
+import type { Video } from './interfaces/video.interface';
 
-const App = () => {
-  // ====== STATE DECLARATIONS ===== //
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [error, setError] = useState<null | string>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [genreMovies, setGenreMovies] = useState<MovieInterface[]>([]); // Movies filtered by genre
-  const [movies, setMovies] = useState<MovieInterface[]>([]); // Search results or default movies
-  const [trendingMovies, setTrendingMovies] = useState<any[]>([]); // Trending searches from Appwrite
-  const [popularMovies, setPopularMovies] = useState<MovieInterface[]>([]); // Popular movies for carousel
-  const [activeTab, setActiveTab] = useState<"all" | "genres" | "trending">(
-    "all"
-  ); // Current active tab
-  const [currentCarouselMovie, setCurrentCarouselMovie] =
-    useState<MovieInterface | null>(null); // Movie for carousel background
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("");
-  const [selectedGenre, setSelectedGenre] = useState<BtnValueInterface | null>(
-    null
-  ); // Currently selected genre
-  const [currentGenreLabel, setCurrentGenreLabel] = useState<string>(""); // Label for current genre
+// Components
+import Navbar from './components/Navbar';
+import Search from "./components/search";
+import MovieCarousel from "./components/movieCarousel";
+import VideoCard from './components/VideoCard';
+import ErrorMessage from "./components/errorMesage";
+import Login from './components/Login';
+import Register from './components/Register';
+import VideoUpload from './components/VideoUpload';
+import VideoPlayer from './components/VideoPlayer';
+import Downloads from './components/Downloads';
 
-  // ====== API CONSTANTS ===== //
-  const API_BASE_URL = "https://api.themoviedb.org/3";
-  const API_KEY = import.meta.env.VITE_TMDB_API_ACCESS_TOKEN;
-  const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
-  const API_OPTIONS = {
-    method: "GET",
-    headers: {
-      accept: "application/json",
-      Authorization: `Bearer ${API_KEY}`,
-    },
-  };
+// Protected Route Component
+const ProtectedRoute = ({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) => {
+  const { isAuthenticated, isAdmin, loading } = useAuth();
 
-  // ====== API FUNCTIONS ===== //
+  if (loading) {
+    return <div className="loading-container"><div className="spinner"></div></div>;
+  }
 
-  // Fetch movies based on search query or default popular movies
-  const fetchMovies = async (query: string = "") => {
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (adminOnly && !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Home Component
+const HomePage = () => {
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredVideos, setFilteredVideos] = useState<Video[]>([]);
+
+  const fetchVideos = async () => {
     setLoading(true);
     setError(null);
     try {
-      const endpoint = query
-        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
-        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
-      const response = await fetch(endpoint, API_OPTIONS);
-      const data: MovieApiResponseInterface = await response.json();
-      setMovies(data.results);
-
-      // Save search term to Appwrite for trending data
-      if (query && data.results.length > 0) {
-        const movieForAppwrite = {
-          ...data.results[0],
-          poster_url: data.results[0].poster_path
-            ? `${TMDB_IMAGE_BASE_URL}${data.results[0].poster_path}`
-            : "",
-        };
-        updateSearchTerm(query, movieForAppwrite);
-      }
-    } catch (error: any) {
-      setError(error.message);
+      const data = await videoService.getVideos();
+      setVideos(data);
+      setFilteredVideos(data);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch videos');
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch popular movies for the main carousel display
-  const fetchPopularMovies = async () => {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/movie/popular?page=1`,
-        API_OPTIONS
-      );
-      const data: MovieApiResponseInterface = await response.json();
-      setPopularMovies(data.results.slice(0, 20));
-
-      // Set random movie as carousel background image
-      if (data.results.length > 0) {
-        const randomMovie =
-          data.results[
-            Math.floor(Math.random() * Math.min(5, data.results.length))
-          ];
-        setCurrentCarouselMovie(randomMovie);
-      }
-    } catch (error: any) {
-      console.error("Error fetching popular movies:", error);
-    }
-  };
-
-  // Fetch movies filtered by specific genre
-  const fetchMoviesByGenre = async (genreId: number, genreLabel: string) => {
-    setError(null);
-    setLoading(true);
-    setCurrentGenreLabel(genreLabel);
-    try {
-      const endpoint = `${API_BASE_URL}/discover/movie?with_genres=${genreId}&sort_by=popularity.desc`;
-      const response = await fetch(endpoint, API_OPTIONS);
-      if (!response.ok) throw new Error("Failed to fetch genres!");
-      const data: MovieApiResponseInterface = await response.json();
-      setGenreMovies(data.results);
-
-      // Set random movie from genre as background
-      if (data.results.length > 0) {
-        const randomMovie =
-          data.results[
-            Math.floor(Math.random() * Math.min(5, data.results.length))
-          ];
-        setCurrentCarouselMovie(randomMovie);
-      }
-    } catch (error: any) {
-      setError(error.message);
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch trending search data from Appwrite database
-  const fetchTrendingMoviesData = async () => {
-    try {
-      const trendingData = await getTrendingMovies();
-      setTrendingMovies(trendingData || []);
-    } catch (error: any) {
-      console.error("Error fetching trending movies:", error);
-    }
-  };
-
-  // ====== EVENT HANDLERS ===== //
-
-  // Handle retry functionality for error states
-  const handleRetry = () => {
-    if (debouncedSearchTerm) {
-      fetchMovies(debouncedSearchTerm);
-    } else if (activeTab === "genres" && selectedGenre) {
-      fetchMoviesByGenre(selectedGenre.id, selectedGenre.label);
-    } else {
-      fetchMovies(); // Fetch popular movies if no search term
-    }
-  };
-
-  // ====== USEEFFECT HOOKS ===== //
-
-  // Load initial data on component mount
   useEffect(() => {
-    fetchPopularMovies();
-    fetchTrendingMoviesData();
+    fetchVideos();
   }, []);
 
-  // Handle search term changes and fetch results
   useEffect(() => {
-    if (debouncedSearchTerm) {
-      fetchMovies(debouncedSearchTerm);
-    } else if (activeTab === "all") {
-      fetchMovies();
-    }
-  }, [debouncedSearchTerm]);
-
-  // Debounce search input to avoid excessive API calls
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 500); // 500ms debounce delay
-
-    return () => clearTimeout(handler);
-  }, [searchTerm]);
-
-  // ====== RENDER LOGIC ===== //
-
-  // Main content renderer based on current state and active tab
-  const renderContent = () => {
-    // Show error message if there's an error
-    if (error) {
-      return (
-        <ErrorMessage
-          error={error}
-          onRetry={handleRetry}
-          maxAttempts={3}
-          retryDelay={5}
-        />
+    if (searchTerm) {
+      const filtered = videos.filter(video =>
+        video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        video.description?.toLowerCase().includes(searchTerm.toLowerCase())
       );
+      setFilteredVideos(filtered);
+    } else {
+      setFilteredVideos(videos);
     }
+  }, [searchTerm, videos]);
 
-    // Show search results when user is searching
-    if (searchTerm && debouncedSearchTerm) {
-      return (
-        <MovieGrid
-          title={`Search Results for "${searchTerm}"`}
-          movies={movies}
-          showDetails={true}
-          isLoading={loading}
-        />
-      );
-    }
+  const handleRetry = () => fetchVideos();
 
-    // Render content based on active tab
-    switch (activeTab) {
-      case "all":
-        return (
-          <div className="content-section">
-            {/* POPULAR MOVIES CAROUSEL - Shows horizontal scrolling popular movies */}
-            {popularMovies.length > 0 && (
-              <MovieCarousel
-                title="Popular Movies"
-                movies={popularMovies}
-                showDetails={false}
-                backgroundMovie={currentCarouselMovie}
-              />
-            )}
+  if (error) {
+    return (
+      <div className="app">
+        <ErrorMessage error={error} onRetry={handleRetry} maxAttempts={3} retryDelay={5} />
+      </div>
+    );
+  }
 
-            {/* ALL MOVIES GRID - Shows all movies in grid layout */}
-            {movies.length > 0 && (
-              <MovieGrid
-                title="All Movies"
-                movies={movies}
-                showDetails={true}
-                isLoading={loading}
-              />
-            )}
-          </div>
-        );
+  const moviesForCarousel = filteredVideos.slice(0, 10).map(v => ({
+    id: v.id,
+    title: v.title,
+    poster_path: v.thumbnail,
+    backdrop_path: v.thumbnail,
+    overview: v.description,
+    vote_average: v.average_rating,
+    release_date: v.release_date,
+    genre_ids: v.genres.map(g => g.id),
+    adult: false,
+    original_language: 'en',
+    original_title: v.title,
+    popularity: v.likes_count,
+    video: true,
+    vote_count: v.likes_count
+  }));
 
-      case "genres":
-        return (
-          <div className="content-section">
-            {/* GENRE MOVIES CAROUSEL - Shows movies from selected genre */}
-            {genreMovies.length > 0 && (
-              <MovieCarousel
-                title={`${currentGenreLabel} Movies`}
-                movies={genreMovies}
-                showDetails={false}
-                isLarge={true} // Larger carousel for genre view
-                backgroundMovie={currentCarouselMovie}
-              />
-            )}
+  const backgroundMovie = moviesForCarousel.length > 0 ? moviesForCarousel[0] : null;
 
-            {/* GENRE MOVIES GRID - Shows all movies from selected genre */}
-            {genreMovies.length > 0 && (
-              <MovieGrid
-                title={`All ${currentGenreLabel} Movies`}
-                movies={genreMovies}
-                showDetails={true}
-                isLoading={loading}
-              />
-            )}
-          </div>
-        );
-
-      case "trending":
-        return (
-          <div className="content-section">
-            {/* TRENDING SEARCHES DISPLAY - Shows most searched movies from Appwrite */}
-            {trendingMovies.length > 0 && (
-              <div className="trending-section">
-                <h2 className="section-title">Trending Searches</h2>
-                <div className="trending-grid">
-                  {trendingMovies.map((trend, index) => (
-                    <div key={index} className="trending-item">
-                      <img
-                        src={trend.poster_url || "/default-poster.png"}
-                        alt={trend.searchTerm}
-                        className="trending-poster"
-                      />
-                      <div className="trending-info">
-                        <h3>{trend.searchTerm}</h3>
-                        <p>{trend.count} searches</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  // ====== MAIN COMPONENT RENDER ===== //
   return (
     <div className="app">
       <div className="search-and-header">
-        {/* APP HEADER - Welcome message and branding */}
         <header className="header">
           <h1 className="header__greeting text-capitalize">
-            Welcome To <br />{" "}
-            <span className="title text-capitalize">FilmFlare</span>
+            Welcome To <br /> <span className="title text-capitalize">FilmFlare</span>
           </h1>
           <h1 className="header__description text-capitalize">
-            Find <span className="title">movies</span> you'll enjoy
+            Find <span className="title">videos</span> you'll enjoy
           </h1>
           <h1 className="header__secondary__description text-capitalize">
             without the hassle
           </h1>
         </header>
 
-        {/* SEARCH COMPONENT - Search bar, tabs (All/Trending/Genres), and genre buttons */}
         <Search
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          fetchMoviesByGenre={fetchMoviesByGenre}
-          setSelectedGenre={setSelectedGenre}
-          selectedGenre={selectedGenre}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          fetchMoviesByGenre={() => {}}
+          selectedGenre={null}
+          setSelectedGenre={() => {}}
+          activeTab="all"
+          setActiveTab={() => {}}
         />
       </div>
 
-      {/* MAIN CONTENT AREA - Renders different content based on active tab and state */}
-      <div className="page-content">{renderContent()}</div>
+      <div className="page-content">
+        {loading ? (
+          <div className="loading-carousel">
+            <div className="loading-spinner"></div>
+          </div>
+        ) : (
+          <div className="content-section">
+            {moviesForCarousel.length > 0 && (
+              <MovieCarousel
+                title="Featured Videos"
+                movies={moviesForCarousel}
+                showDetails={false}
+                backgroundMovie={backgroundMovie}
+              />
+            )}
+
+            <div style={{ marginTop: '3rem' }}>
+              <h2 className="section-title">
+                {searchTerm ? `Search Results for "${searchTerm}"` : 'All Videos'}
+              </h2>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: '2rem',
+                padding: '0 1rem'
+              }}>
+                {filteredVideos.map((video) => (
+                  <VideoCard
+                    key={video.id}
+                    video={video}
+                    showDetails={true}
+                    onUpdate={fetchVideos}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {selectedVideo && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.95)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2rem'
+        }}>
+          <VideoPlayer
+            videoUrl={selectedVideo.video_file}
+            poster={selectedVideo.thumbnail}
+            onClose={() => setSelectedVideo(null)}
+          />
+        </div>
+      )}
     </div>
   );
 };
+
+// Favorites Page
+const FavoritesPage = () => {
+  const [favorites, setFavorites] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchFavorites = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await videoService.getFavorites();
+      setFavorites(data);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch favorites');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFavorites();
+  }, []);
+
+  return (
+    <div className="app" style={{ paddingTop: '80px', minHeight: '100vh' }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem' }}>
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem', color: 'white' }}>
+          My Favorites
+        </h1>
+        {loading ? (
+          <div className="loading-container"><div className="spinner"></div></div>
+        ) : error ? (
+          <p style={{ color: '#ff4444' }}>{error}</p>
+        ) : favorites.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '4rem', color: '#a0a0a0' }}>
+            <p>No favorites yet. Start adding videos!</p>
+          </div>
+        ) : (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: '2rem'
+          }}>
+            {favorites.map((video) => (
+              <VideoCard
+                key={video.id}
+                video={video}
+                showDetails={true}
+                onUpdate={fetchFavorites}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/favorites" element={
+          <ProtectedRoute>
+            <FavoritesPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/upload" element={
+          <ProtectedRoute adminOnly={true}>
+            <VideoUpload />
+          </ProtectedRoute>
+        } />
+        <Route path="/downloads" element={
+          <ProtectedRoute>
+            <div style={{ paddingTop: '100px', maxWidth: '1400px', margin: '0 auto', padding: '100px 2rem 2rem' }}>
+              <Downloads />
+            </div>
+          </ProtectedRoute>
+        } />
+      </Routes>
+    </AuthProvider>
+  );
+}
 
 export default App;
