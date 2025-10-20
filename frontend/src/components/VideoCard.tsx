@@ -92,6 +92,10 @@ export const VideoCard = ({ video, isLarge = false, showDetails = false, onUpdat
           src={video.thumbnail}
           alt={video.title}
           className="video-card__image"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = "/no-image.png";
+          }}
         />
         <div className="video-card__overlay">
           <div className="video-card__actions">

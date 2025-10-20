@@ -88,7 +88,7 @@ export const MovieCarousel: React.FC<MovieCarouselProps> = ({
           className="carousel-background"
           style={{
             backgroundImage: `url(${
-              backgroundMovie.backdrop_path || backgroundMovie.poster_path
+              backgroundMovie.backdrop_path || backgroundMovie.poster_path || '/no-image.png'
             })`,
           }}
         />

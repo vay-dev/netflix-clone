@@ -56,10 +56,14 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       <div className="movie-card__image-container">
         <img
           src={
-            movie.poster_path ? `${movie.poster_path}` : "/default-poster.png"
+            movie.poster_path ? `${movie.poster_path}` : "/no-image.png"
           }
           alt={movie.title}
           className="movie-card__image"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = "/no-image.png";
+          }}
         />
         <div className="movie-card__overlay">
           <div className="movie-card__actions">

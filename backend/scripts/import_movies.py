@@ -12,8 +12,9 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 django.setup()
 
 # 2️⃣ Now you can safely import Django models
-from videos.models import Video, Genre
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
+from videos.models import Video, Genre
 
 TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkMWQ1NDFjY2Y1YmY4NzMwMDc1N2ZjODI2MDNjNDc3YSIsIm5iZiI6MTc1NTQ2OTYwNS4yMTgsInN1YiI6IjY4YTI1NzI1OGE4MzQxNDgzMTYxYzM5ZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.eWtWmXpKCHub7y8R5JgJhDlngQQAr9yzz2LVgOhV00M"
 
@@ -90,8 +91,15 @@ def run():
             genres = []
             for g_id in movie.get("genre_ids", []):
                 genre_name = TMDB_GENRE_MAP.get(g_id, "Unknown")
-                genre, _ = Genre.objects.get_or_create(name=genre_name.lower())
+                # Use filter().first() to avoid MultipleObjectsReturned error
+                genre = Genre.objects.filter(name=genre_name.lower()).first()
+                if not genre:
+                    genre = Genre.objects.create(name=genre_name.lower())
                 genres.append(genre)
+
+            # Get poster path from TMDB
+            poster_path = movie.get("poster_path")
+            poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
 
             # Create Video object
             video = Video.objects.create(
@@ -101,9 +109,23 @@ def run():
                 producer="Unknown",
                 star_actors="Unknown",
                 uploaded_by=admin,
-                thumbnail="media/thumbnails/default.jpg",
-                video_file="media/videos/default.mp4"
+                video_file="/videos/default.mp4"
             )
+
+            # Download and save poster if available
+            if poster_url:
+                try:
+                    poster_response = requests.get(poster_url)
+                    poster_response.raise_for_status()
+                    video.thumbnail.save(
+                        f"{title.replace(' ', '_').replace('/', '_')}_poster.jpg",
+                        ContentFile(poster_response.content),
+                        save=False
+                    )
+                    print(f"  ✓ Downloaded poster for: {title}")
+                except Exception as e:
+                    print(f"  ⚠️ Could not download poster for {title}: {e}")
+
             video.genres.set(genres)
             video.save()
 
