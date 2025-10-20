@@ -17,6 +17,7 @@ export interface Video {
   genres: Genre[];
   likes_count: number;
   average_rating: number;
+  has_liked: boolean;
 }
 
 export interface VideoFormData {

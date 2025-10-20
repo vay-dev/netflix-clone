@@ -23,12 +23,20 @@ class VideoSerializer(serializers.ModelSerializer):
     likes_count = serializers.IntegerField(
         source='likes.count', read_only=True)
     average_rating = serializers.FloatField(read_only=True)
+    has_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Video
         fields = [
             'id', 'title', 'description', 'release_date', 'producer',
             'star_actors', 'thumbnail', 'video_file', 'uploaded_by',
-            'genres', 'likes_count', 'average_rating', 'created_at'
+            'genres', 'likes_count', 'average_rating', 'created_at', 'has_liked',
         ]
         read_only_fields = ['uploaded_by']
+
+    def get_has_liked(self, obj):
+        request = self.context.get('request')
+        user = request.user if request else None
+        if user and user.is_authenticated:
+            return obj.likes.filter(id=user.id).exists()
+        return False

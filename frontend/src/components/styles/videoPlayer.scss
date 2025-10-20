@@ -26,8 +26,12 @@
   &__video {
     width: 100%;
     height: auto;
+    min-height: 400px;
+    max-height: 80vh;
     display: block;
     cursor: pointer;
+    background: #000;
+    object-fit: contain;
   }
 
   &__close {
@@ -76,12 +80,9 @@
     background: rgba(255, 255, 255, 0.2);
     border-radius: 3px;
     margin-bottom: 1rem;
-    cursor: pointer;
+    cursor: default;
     position: relative;
-
-    &:hover {
-      height: 7px;
-    }
+    pointer-events: none;
   }
 
   &__progress-filled {

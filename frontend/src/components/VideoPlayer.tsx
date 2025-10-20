@@ -6,8 +6,6 @@ import {
   VolumeX,
   Maximize,
   Minimize,
-  SkipBack,
-  SkipForward,
   Settings,
 } from 'lucide-react';
 import './styles/videoPlayer.scss';
@@ -100,22 +98,23 @@ const VideoPlayer = ({ videoUrl, poster, onClose }: VideoPlayerProps) => {
     }
   };
 
-  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const video = videoRef.current;
-    const progressBar = progressRef.current;
-    if (!video || !progressBar) return;
+  // Disabled seeking functionality
+  // const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  //   const video = videoRef.current;
+  //   const progressBar = progressRef.current;
+  //   if (!video || !progressBar) return;
 
-    const rect = progressBar.getBoundingClientRect();
-    const pos = (e.clientX - rect.left) / rect.width;
-    video.currentTime = pos * duration;
-  };
+  //   const rect = progressBar.getBoundingClientRect();
+  //   const pos = (e.clientX - rect.left) / rect.width;
+  //   video.currentTime = pos * duration;
+  // };
 
-  const skip = (seconds: number) => {
-    const video = videoRef.current;
-    if (!video) return;
+  // const skip = (seconds: number) => {
+  //   const video = videoRef.current;
+  //   if (!video) return;
 
-    video.currentTime = Math.max(0, Math.min(duration, video.currentTime + seconds));
-  };
+  //   video.currentTime = Math.max(0, Math.min(duration, video.currentTime + seconds));
+  // };
 
   const toggleFullscreen = () => {
     const container = containerRef.current;
@@ -168,17 +167,16 @@ const VideoPlayer = ({ videoUrl, poster, onClose }: VideoPlayerProps) => {
       <video
         ref={videoRef}
         src={videoUrl}
-        poster={poster}
         className="video-player__video"
         onClick={togglePlay}
+        preload="metadata"
       />
 
       <div className={`video-player__controls ${showControls ? 'visible' : ''}`}>
-        {/* Progress Bar */}
+        {/* Progress Bar - Read Only */}
         <div
           ref={progressRef}
           className="video-player__progress"
-          onClick={handleProgressClick}
         >
           <div
             className="video-player__progress-filled"
@@ -191,14 +189,6 @@ const VideoPlayer = ({ videoUrl, poster, onClose }: VideoPlayerProps) => {
           <div className="video-player__controls-left">
             <button onClick={togglePlay} className="control-btn">
               {isPlaying ? <Pause size={24} /> : <Play size={24} />}
-            </button>
-
-            <button onClick={() => skip(-10)} className="control-btn">
-              <SkipBack size={20} />
-            </button>
-
-            <button onClick={() => skip(10)} className="control-btn">
-              <SkipForward size={20} />
             </button>
 
             <div className="volume-control">

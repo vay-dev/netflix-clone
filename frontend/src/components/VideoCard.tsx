@@ -16,7 +16,7 @@ interface VideoCardProps {
 export const VideoCard = ({ video, isLarge = false, showDetails = false, onUpdate }: VideoCardProps) => {
   const { isAuthenticated } = useAuth();
   const [showPlayer, setShowPlayer] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(video.has_liked);
   const [isFavorited, setIsFavorited] = useState(false);
   const [likesCount, setLikesCount] = useState(video.likes_count);
   const [loading, setLoading] = useState(false);
