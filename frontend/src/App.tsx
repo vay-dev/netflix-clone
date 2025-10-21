@@ -17,6 +17,8 @@ import VideoUpload from './components/VideoUpload';
 import VideoPlayer from './components/VideoPlayer';
 import Downloads from './components/Downloads';
 import Dashboard from './components/Dashboard/Dashboard';
+import Profile from './components/Profile';
+import Toast from './components/Toast';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) => {
@@ -254,6 +256,7 @@ const FavoritesPage = () => {
 function App() {
   return (
     <AuthProvider>
+      <Toast />
       <Navbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -267,6 +270,11 @@ function App() {
         <Route path="/favorites" element={
           <ProtectedRoute>
             <FavoritesPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
           </ProtectedRoute>
         } />
         <Route path="/upload" element={

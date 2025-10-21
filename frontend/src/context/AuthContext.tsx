@@ -1,13 +1,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService } from '../services/authService';
-import type { User, LoginCredentials, RegisterData } from '../interfaces/user.interface';
+import type { User, LoginCredentials, RegisterData, AuthResponse } from '../interfaces/user.interface';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<AuthResponse>;
+  register: (data: RegisterData) => Promise<AuthResponse>;
   logout: () => void;
   loading: boolean;
 }
@@ -30,11 +30,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (credentials: LoginCredentials) => {
     const response = await authService.login(credentials);
     setUser(response.user);
+    return response;
   };
 
   const register = async (data: RegisterData) => {
     const response = await authService.register(data);
     setUser(response.user);
+    return response;
   };
 
   const logout = () => {

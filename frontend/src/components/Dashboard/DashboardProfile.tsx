@@ -1,8 +1,10 @@
 import { useAuth } from '../../context/AuthContext';
-import { User, Mail, Calendar, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { User, Mail, Calendar, Shield, Settings } from 'lucide-react';
 
 const DashboardProfile = () => {
   const { user, isAdmin } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="dashboard__profile">
@@ -20,6 +22,14 @@ const DashboardProfile = () => {
             {isAdmin ? 'Administrator' : 'User'}
           </p>
         </div>
+        <button
+          className="dashboard__edit-profile-btn"
+          onClick={() => navigate('/profile')}
+          title="Edit Profile"
+        >
+          <Settings size={18} />
+          <span>Edit Profile</span>
+        </button>
       </div>
 
       <div className="dashboard__profile-details">

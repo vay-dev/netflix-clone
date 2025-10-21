@@ -5,6 +5,8 @@ export interface User {
   roles: 'admin' | 'user';
   profile_image: string | null;
   bio?: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 export interface AuthResponse {
@@ -23,4 +25,22 @@ export interface RegisterData {
   email: string;
   password: string;
   password2: string;
+  first_name?: string;
+  last_name?: string;
+  bio?: string;
+  profile_image?: File;
+}
+
+export interface UserUpdateData {
+  username?: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  bio?: string;
+  profile_image?: File;
+}
+
+export interface ChangePasswordData {
+  old_password: string;
+  new_password: string;
 }

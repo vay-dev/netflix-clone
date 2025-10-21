@@ -357,6 +357,7 @@
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
+    position: relative;
   }
 
   &__profile-avatar {
@@ -381,6 +382,8 @@
   }
 
   &__profile-info {
+    flex: 1;
+
     h2 {
       font-size: 2rem;
       color: #fff;
@@ -391,6 +394,37 @@
   &__profile-role {
     color: rgba(255, 255, 255, 0.6);
     font-size: 1.1rem;
+  }
+
+  &__edit-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    background: rgba(233, 69, 96, 0.1);
+    border: 1px solid #e94560;
+    color: #e94560;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+
+    svg {
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      background: #e94560;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(233, 69, 96, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
   }
 
   &__profile-details {
@@ -832,6 +866,20 @@
       flex-direction: column;
       align-items: flex-start;
       gap: 1rem;
+    }
+
+    &__profile-header {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    &__profile-info {
+      text-align: center;
+    }
+
+    &__edit-profile-btn {
+      width: 100%;
+      justify-content: center;
     }
   }
 }

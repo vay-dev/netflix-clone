@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
+import { toast } from '../services/toastService';
 import './styles/auth.scss';
 
 const Login = () => {
@@ -28,10 +29,17 @@ const Login = () => {
     setError('');
 
     try {
-      await login(formData);
+      const response = await login(formData);
+      const firstName = response.user.first_name;
+      const welcomeMessage = firstName
+        ? `Welcome back, ${firstName}!`
+        : `Welcome back, ${response.user.username}!`;
+      toast.success(welcomeMessage);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
+      const errorMsg = err.response?.data?.detail || 'Login failed. Please check your credentials.';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

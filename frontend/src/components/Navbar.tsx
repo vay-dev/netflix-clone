@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { User, LogOut, Upload, Heart, Home, LayoutDashboard, ChevronDown } from "lucide-react";
+import { User, LogOut, Upload, Heart, Home, LayoutDashboard, ChevronDown, Settings } from "lucide-react";
 import { useState } from "react";
 import Button from "./shared/Button";
 import "./styles/navbar.scss";
@@ -91,6 +91,14 @@ const Navbar = () => {
                   >
                     <Heart size={18} />
                     <span>My Favorites</span>
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className="navbar__dropdown-item"
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    <Settings size={18} />
+                    <span>Profile Settings</span>
                   </Link>
                   {isAdmin && (
                     <Link
